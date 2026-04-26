@@ -1,0 +1,1136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NVIDIA GPU 32 — Blackwell Low-Level HW</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0a0a0a;
+            --bg-card: #0d1117;
+            --bg-code: #161b22;
+            --text-primary: #e6edf3;
+            --text-secondary: #8b949e;
+            --accent: #76B900;
+            --accent-dim: #76B90044;
+            --accent-glow: #76B90033;
+            --border: #21262d;
+            --font-display: 'Space Grotesk', sans-serif;
+            --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+            --font-body: 'Inter', sans-serif;
+            --max-width: 900px;
+        }
+
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font-family: var(--font-body);
+            font-size: 17px;
+            line-height: 1.7;
+            overflow-x: hidden;
+        }
+
+        /* ── Header ── */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem 1.5rem;
+            text-align: center;
+            position: relative;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .hero > * {
+            position: relative;
+            z-index: 1;
+        }
+
+        .series-label {
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+            color: var(--accent);
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            margin-bottom: 1rem;
+        }
+
+        .hero h1 {
+            font-family: var(--font-display);
+            font-size: clamp(2rem, 5vw, 3.2rem);
+            font-weight: 700;
+            color: var(--text-primary);
+            line-height: 1.2;
+            margin-bottom: 1rem;
+        }
+
+        .hero h1 .accent {
+            color: var(--accent);
+        }
+
+        .hero .subtitle {
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+            max-width: 600px;
+            margin-bottom: 2rem;
+        }
+
+        /* ── Tag Pills ── */
+        .tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            justify-content: center;
+            margin-bottom: 2.5rem;
+        }
+
+        .tag {
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            padding: 0.25rem 0.75rem;
+            border-radius: 999px;
+            border: 1px solid var(--accent);
+            color: var(--accent);
+            background: var(--accent-dim);
+            white-space: nowrap;
+        }
+
+        /* ── Pipeline Flow Bar ── */
+        .pipeline {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: center;
+            gap: 0.25rem;
+            margin-bottom: 1rem;
+            max-width: var(--max-width);
+        }
+
+        .pipeline-step {
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            padding: 0.3rem 0.7rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            color: var(--text-secondary);
+            white-space: nowrap;
+        }
+
+        .pipeline-arrow {
+            color: var(--accent);
+            font-size: 0.9rem;
+            font-weight: 700;
+        }
+
+        /* ── Slides ── */
+        .slide {
+            min-height: 100vh;
+            max-width: var(--max-width);
+            margin: 0 auto;
+            padding: 4rem 1.5rem;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .slide-number {
+            font-family: var(--font-display);
+            font-size: 5rem;
+            font-weight: 700;
+            color: var(--accent-dim);
+            position: absolute;
+            top: 2rem;
+            right: 1.5rem;
+            line-height: 1;
+            user-select: none;
+        }
+
+        .slide h2 {
+            font-family: var(--font-display);
+            font-size: 1.9rem;
+            font-weight: 700;
+            color: var(--accent);
+            margin-bottom: 1.5rem;
+            line-height: 1.25;
+        }
+
+        .slide h3 {
+            font-family: var(--font-display);
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-top: 1.5rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .slide p {
+            margin-bottom: 1rem;
+            color: var(--text-secondary);
+        }
+
+        .slide p strong {
+            color: var(--text-primary);
+        }
+
+        .slide ul, .slide ol {
+            margin-bottom: 1rem;
+            padding-left: 1.5rem;
+            color: var(--text-secondary);
+        }
+
+        .slide li {
+            margin-bottom: 0.4rem;
+        }
+
+        .slide li strong {
+            color: var(--text-primary);
+        }
+
+        /* ── Code Blocks ── */
+        .code-block {
+            background: var(--bg-code);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            margin: 1.25rem 0;
+            overflow: hidden;
+        }
+
+        .code-header {
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            color: var(--accent);
+            background: rgba(118, 185, 0, 0.08);
+            padding: 0.4rem 1rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .code-block pre {
+            margin: 0;
+            padding: 1rem;
+            overflow-x: auto;
+        }
+
+        .code-block code {
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+            line-height: 1.6;
+            color: #c9d1d9;
+        }
+
+        /* Syntax highlighting (manual) */
+        .kw { color: #ff7b72; }
+        .fn { color: #d2a8ff; }
+        .str { color: #a5d6ff; }
+        .cm { color: #8b949e; font-style: italic; }
+        .num { color: #79c0ff; }
+        .type { color: #ffa657; }
+        .dir { color: #ff7b72; }
+        .mac { color: #ffa657; }
+
+        /* ── Tables ── */
+        .table-wrap {
+            overflow-x: auto;
+            margin: 1.25rem 0;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+
+        th {
+            background: var(--bg-code);
+            color: var(--accent);
+            font-weight: 600;
+            text-align: left;
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid var(--border);
+            font-family: var(--font-display);
+            white-space: nowrap;
+        }
+
+        td {
+            padding: 0.6rem 1rem;
+            border-bottom: 1px solid var(--border);
+            color: var(--text-secondary);
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr:nth-child(even) td {
+            background: rgba(13, 17, 23, 0.5);
+        }
+
+        /* ── Diagrams ── */
+        .diagram-flow {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            margin: 1.5rem 0;
+            padding: 1.5rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+        }
+
+        .diagram-box {
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+            padding: 0.5rem 1rem;
+            background: var(--bg-code);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: var(--text-primary);
+            text-align: center;
+            white-space: nowrap;
+        }
+
+        .diagram-box.accent {
+            border-color: var(--accent);
+            color: var(--accent);
+            background: rgba(118, 185, 0, 0.08);
+        }
+
+        .diagram-box.dim {
+            color: var(--text-secondary);
+            border-color: var(--border);
+        }
+
+        .diagram-arrow {
+            color: var(--accent);
+            font-size: 1.3rem;
+            font-weight: 700;
+        }
+
+        /* Vertical flow diagrams */
+        .diagram-vertical {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.3rem;
+            margin: 1.5rem 0;
+            padding: 1.5rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+        }
+
+        .diagram-vertical .diagram-arrow {
+            font-size: 1.1rem;
+        }
+
+        /* Nested hierarchy diagram */
+        .hierarchy {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            margin: 1.5rem 0;
+            padding: 1.5rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+        }
+
+        .hierarchy-level {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .hierarchy-label {
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            min-width: 80px;
+            text-align: right;
+        }
+
+        .hierarchy-items {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.35rem;
+        }
+
+        .hierarchy-item {
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            padding: 0.3rem 0.6rem;
+            border-radius: 4px;
+            background: var(--bg-code);
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+        }
+
+        .hierarchy-item.accent {
+            border-color: var(--accent);
+            color: var(--accent);
+            background: rgba(118, 185, 0, 0.08);
+        }
+
+        /* Grid diagram */
+        .diagram-grid {
+            display: grid;
+            gap: 0.75rem;
+            margin: 1.5rem 0;
+            padding: 1.5rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+        }
+
+        .diagram-grid.cols-2 {
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .diagram-grid.cols-3 {
+            grid-template-columns: 1fr 1fr 1fr;
+        }
+
+        .diagram-panel {
+            padding: 1rem;
+            background: var(--bg-code);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+        }
+
+        .diagram-panel.accent-border {
+            border-left: 3px solid var(--accent);
+        }
+
+        .diagram-panel h4 {
+            font-family: var(--font-display);
+            font-size: 1rem;
+            color: var(--accent);
+            margin-bottom: 0.5rem;
+        }
+
+        .diagram-panel p, .diagram-panel ul {
+            font-size: 0.85rem;
+        }
+
+        /* ── Callout Boxes ── */
+        .callout {
+            background: var(--bg-card);
+            border-left: 3px solid var(--accent);
+            border-radius: 0 8px 8px 0;
+            padding: 1rem 1.25rem;
+            margin: 1.25rem 0;
+        }
+
+        .callout p {
+            margin-bottom: 0;
+        }
+
+        .callout .callout-label {
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 0.3rem;
+        }
+
+        /* ── Tier Visual ── */
+        .tier-visual {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            margin: 1.5rem 0;
+            padding: 1.5rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+        }
+
+        .tier-bar {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .tier-label {
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            min-width: 90px;
+            text-align: right;
+        }
+
+        .tier-fill {
+            height: 32px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            padding: 0 0.75rem;
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            white-space: nowrap;
+            transition: width 0.6s ease;
+        }
+
+        .tier-cost {
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+            min-width: 70px;
+        }
+
+        /* ── Contents list ── */
+        .contents-list {
+            list-style: none;
+            padding-left: 0;
+            counter-reset: contents;
+        }
+
+        .contents-list li {
+            counter-increment: contents;
+            padding: 0.6rem 0;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .contents-list li:last-child {
+            border-bottom: none;
+        }
+
+        .contents-list li::before {
+            content: counter(contents, decimal-leading-zero);
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+            color: var(--accent);
+            min-width: 2rem;
+        }
+
+        .contents-list a {
+            color: var(--text-primary);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .contents-list a:hover {
+            color: var(--accent);
+        }
+
+        /* ── Footer ── */
+        .footer {
+            text-align: center;
+            padding: 3rem 1.5rem;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            border-top: 1px solid var(--border);
+            max-width: var(--max-width);
+            margin: 0 auto;
+        }
+
+        .footer a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        .footer a:hover {
+            text-decoration: underline;
+        }
+
+        /* ── Responsive ── */
+        @media (max-width: 640px) {
+            .slide {
+                padding: 3rem 1rem;
+                min-height: auto;
+            }
+
+            .slide-number {
+                font-size: 3rem;
+                top: 1.5rem;
+                right: 1rem;
+            }
+
+            .slide h2 {
+                font-size: 1.5rem;
+            }
+
+            .diagram-grid.cols-2,
+            .diagram-grid.cols-3 {
+                grid-template-columns: 1fr;
+            }
+
+            .pipeline {
+                gap: 0.15rem;
+            }
+
+            .pipeline-step {
+                font-size: 0.6rem;
+                padding: 0.2rem 0.4rem;
+            }
+
+            .hero h1 {
+                font-size: 1.8rem;
+            }
+
+            table {
+                font-size: 0.78rem;
+            }
+
+            .tier-label {
+                min-width: 60px;
+                font-size: 0.65rem;
+            }
+
+            .tier-fill {
+                font-size: 0.6rem;
+                height: 26px;
+            }
+        }
+
+        /* ── Interactive controls (added for Local LLM series) ── */
+        .control-panel {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1.25rem;
+            margin: 1.25rem 0;
+        }
+        .control-row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 0.75rem;
+        }
+        .control-row label {
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            min-width: 180px;
+        }
+        .control-row input[type="range"] {
+            flex: 1;
+            min-width: 160px;
+            accent-color: var(--accent);
+        }
+        .control-row input[type="number"],
+        .control-row select {
+            background: var(--bg-code);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            border-radius: 4px;
+            padding: 0.3rem 0.5rem;
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+        }
+        .control-row .val {
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+            color: var(--accent);
+            min-width: 80px;
+            text-align: right;
+        }
+        .btn {
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            padding: 0.4rem 0.9rem;
+            background: var(--accent-dim);
+            color: var(--accent);
+            border: 1px solid var(--accent);
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.15s ease;
+        }
+        .btn:hover { background: rgba(118, 185, 0, 0.2); }
+        .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+        .btn.secondary {
+            background: var(--bg-code);
+            color: var(--text-secondary);
+            border-color: var(--border);
+        }
+        .result-box {
+            background: var(--bg-code);
+            border: 1px solid var(--border);
+            border-left: 3px solid var(--accent);
+            border-radius: 4px;
+            padding: 0.75rem 1rem;
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+            color: var(--text-primary);
+            margin-top: 0.75rem;
+        }
+        .result-box .line-label { color: var(--text-secondary); }
+        .result-box .line-val   { color: var(--accent); font-weight: 600; }
+        .metric-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 0.5rem;
+            margin-top: 0.75rem;
+        }
+        .metric {
+            background: var(--bg-code);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 0.6rem 0.8rem;
+            text-align: center;
+        }
+        .metric .metric-label {
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+        .metric .metric-value {
+            font-family: var(--font-display);
+            font-size: 1.25rem;
+            color: var(--accent);
+            font-weight: 600;
+            margin-top: 0.2rem;
+        }
+
+        /* Canvas / SVG containers */
+        .canvas-wrap {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1.25rem 0;
+            overflow-x: auto;
+        }
+        .canvas-wrap canvas,
+        .canvas-wrap svg {
+            display: block;
+            margin: 0 auto;
+            max-width: 100%;
+        }
+
+        /* Small inline badge */
+        .badge {
+            display: inline-block;
+            font-family: var(--font-mono);
+            font-size: 0.65rem;
+            padding: 0.1rem 0.45rem;
+            border-radius: 999px;
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+            vertical-align: middle;
+            margin-left: 0.3rem;
+        }
+        .badge.ok    { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); }
+        .badge.warn  { border-color: #ffa657; color: #ffa657; background: rgba(255,166,87,0.08); }
+        .badge.bad   { border-color: #ff7b72; color: #ff7b72; background: rgba(255,123,114,0.08); }
+
+    </style>
+</head>
+<body>
+
+<header class="hero">
+    <div class="series-label">NVIDIA GPU Architectures Series — Presentation 32</div>
+    <h1>Inside <span class="accent">Blackwell</span> &mdash; Dual-Die, MX-FP4, NVLink 5</h1>
+    <p class="subtitle">A low-level deep dive into NVIDIA's 2024 dual-die architecture. Two reticle-sized dies bonded by the 10 TB/s NV-HBI link, 5th-generation tensor cores with MX-FP4 microscaling at 9 PFLOPS, 192 GB of HBM3e at 8 TB/s, NVLink 5 at 1.8 TB/s per GPU, the GB200 superchip and NVL72 rack, plus the consumer RTX 50 series with GDDR7.</p>
+
+    <div class="tags">
+        <span class="tag">B100</span><span class="tag">B200</span><span class="tag">GB200</span>
+        <span class="tag">RTX 5090</span><span class="tag">RTX PRO 6000</span>
+        <span class="tag">TSMC 4NP</span><span class="tag">NV-HBI</span><span class="tag">CoWoS-L</span>
+        <span class="tag">HBM3e</span><span class="tag">GDDR7</span>
+        <span class="tag">MX-FP4</span><span class="tag">NVLink 5</span><span class="tag">RAS</span>
+    </div>
+
+    <div class="pipeline">
+        <span class="pipeline-step">Die A</span>
+        <span class="pipeline-arrow">&harr;</span>
+        <span class="pipeline-step">NV-HBI</span>
+        <span class="pipeline-arrow">&harr;</span>
+        <span class="pipeline-step">Die B</span>
+        <span class="pipeline-arrow">&rarr;</span>
+        <span class="pipeline-step">TC5 / MX-FP4</span>
+        <span class="pipeline-arrow">&rarr;</span>
+        <span class="pipeline-step">HBM3e</span>
+        <span class="pipeline-arrow">&rarr;</span>
+        <span class="pipeline-step">NVLink 5</span>
+        <span class="pipeline-arrow">&rarr;</span>
+        <span class="pipeline-step">NVL72</span>
+    </div>
+</header>
+
+<section class="slide" id="slide-00">
+    <div class="slide-number">00</div>
+    <h2>Topics We'll Cover</h2>
+    <ul class="contents-list">
+        <li><a href="#slide-01">Blackwell at a Glance</a></li>
+        <li><a href="#slide-02">The Dual-Die Package &amp; NV-HBI</a></li>
+        <li><a href="#slide-03">B200 / B100 / GB200 SKUs</a></li>
+        <li><a href="#slide-04">The Blackwell SM &mdash; 5th-Gen Tensor Cores</a></li>
+        <li><a href="#slide-05">MX-FP4 &amp; MX-FP6 Microscaling Formats</a></li>
+        <li><a href="#slide-06">2nd-Generation Transformer Engine</a></li>
+        <li><a href="#slide-07">RAS &amp; Decompression Engines</a></li>
+        <li><a href="#slide-08">Process &amp; Voltage</a></li>
+        <li><a href="#slide-09">Memory &mdash; HBM3e at 8 TB/s, GDDR7 on Consumer</a></li>
+        <li><a href="#slide-10">NVLink 5 &amp; NVSwitch 4 (NVL72)</a></li>
+        <li><a href="#slide-11">Consumer Blackwell &mdash; RTX 50 Series</a></li>
+        <li><a href="#slide-12">Interactive: Blackwell SKU Picker</a></li>
+    </ul>
+</section>
+
+<section class="slide" id="slide-01">
+    <div class="slide-number">01</div>
+    <h2>Blackwell at a Glance</h2>
+    <p>Announced at GTC <strong>March 2024</strong>, volume in late 2024. Blackwell is NVIDIA's <strong>first multi-die GPU at the high end</strong>: two reticle-limited compute dies bonded into one logical GPU. Names get confusing &mdash; "Blackwell" is the architecture, "B100/B200" are dual-die datacenter GPUs, "GB100/GB202/GB203/..." are consumer/workstation dies.</p>
+    <div class="table-wrap">
+        <table>
+            <thead><tr><th>SKU</th><th>Dies</th><th>HBM / GDDR</th><th>Bandwidth</th><th>FP4 (dense)</th><th>TDP</th></tr></thead>
+            <tbody>
+                <tr><td>B100</td><td>2&times; compute</td><td>192 GB HBM3e</td><td>8 TB/s</td><td>~7 PFLOPS</td><td>700 W</td></tr>
+                <tr><td>B200</td><td>2&times; compute</td><td>192 GB HBM3e</td><td>8 TB/s</td><td>9 PFLOPS</td><td>1000 W</td></tr>
+                <tr><td>GB200 (1 Grace + 2 B200)</td><td>4 silicon dies</td><td>384 GB HBM3e + 480 GB LPDDR5x</td><td>16 TB/s + 480 GB/s</td><td>18 PFLOPS</td><td>2700 W</td></tr>
+                <tr><td>RTX PRO 6000 Blackwell</td><td>1 (GB202 monolithic)</td><td>96 GB GDDR7 ECC</td><td>1.79 TB/s</td><td>~3 PFLOPS</td><td>600 W</td></tr>
+                <tr><td>RTX 5090</td><td>1 (GB202)</td><td>32 GB GDDR7</td><td>1.79 TB/s</td><td>~3 PFLOPS</td><td>575 W</td></tr>
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<section class="slide" id="slide-02">
+    <div class="slide-number">02</div>
+    <h2>The Dual-Die Package &amp; NV-HBI</h2>
+    <p>Each B100/B200 contains <strong>two compute dies</strong>, each ~750 mm&sup2; on TSMC 4NP, ~104 B transistors each &mdash; <strong>~208 B transistors total</strong>. The dies are bonded face-to-face via <strong>NV-HBI</strong> (NVIDIA High-Bandwidth Interface): a wide silicon-bridge link delivering <strong>10 TB/s bidirectional die-to-die</strong>.</p>
+
+    <div class="diagram-grid cols-2">
+        <div class="diagram-panel accent-border">
+            <h4>Why dual die</h4>
+            <p>TSMC's reticle limit is ~830 mm&sup2;. GH100 was already at 814 mm&sup2;. To deliver more compute per package, NVIDIA had to either accept the ceiling or split the design. Two ~750 mm&sup2; dies + NV-HBI gives 1.8&times; the silicon area at substantially better yield than one impossible 1500 mm&sup2; die.</p>
+        </div>
+        <div class="diagram-panel accent-border">
+            <h4>Why &quot;one GPU&quot;</h4>
+            <p>The two dies share a unified L2, a single CUDA address space, and one NVLink endpoint. Software sees one B200, not two B100s. Coherency across NV-HBI is hardware-managed; the SM scheduler load-balances across both dies.</p>
+        </div>
+    </div>
+
+    <p>Packaging: <strong>CoWoS-L</strong> with LSI (Local Silicon Interconnect) bridges. The bridges only sit between the two dies and between dies and HBM stacks &mdash; the rest of the substrate is cheap organic. CoWoS-L scales to larger areas than CoWoS-S at lower per-unit silicon cost.</p>
+</section>
+
+<section class="slide" id="slide-03">
+    <div class="slide-number">03</div>
+    <h2>B200 / B100 / GB200 SKUs</h2>
+    <div class="diagram-grid cols-3">
+        <div class="diagram-panel accent-border">
+            <h4>B100 (700 W)</h4>
+            <p>Drop-in HGX H100 socket compatibility. Two compute dies; <strong>192 GB HBM3e at 8 TB/s</strong>. Lower clocks than B200 to fit 700 W envelope. Allows existing HGX H100 buyers to upgrade in place.</p>
+        </div>
+        <div class="diagram-panel accent-border">
+            <h4>B200 (1000 W)</h4>
+            <p>Full performance variant; same silicon, higher clocks, requires liquid-cooled HGX B200 baseboard. <strong>9 PFLOPS dense MX-FP4, 4.5 PFLOPS FP8, 2.25 PFLOPS BF16, 40 TFLOPS FP64</strong>.</p>
+        </div>
+        <div class="diagram-panel accent-border">
+            <h4>GB200 superchip (2700 W)</h4>
+            <p>1&times; Grace ARM CPU + 2&times; B200 GPUs on a single board, connected by two NVLink-C2C links at 900 GB/s each. 384 GB HBM3e + 480 GB LPDDR5x = <strong>864 GB unified memory</strong>. Liquid cooled. Building block of NVL72.</p>
+        </div>
+    </div>
+</section>
+
+<section class="slide" id="slide-04">
+    <div class="slide-number">04</div>
+    <h2>The Blackwell SM &mdash; 5th-Gen Tensor Cores</h2>
+    <div class="diagram-grid cols-2">
+        <div class="diagram-panel accent-border">
+            <h4>Per-SM compute</h4>
+            <ul>
+                <li>4 partitions, 1 warp scheduler each</li>
+                <li>128 FP32 cores, 64 INT32, 64 FP64 (1:2 of FP32 maintained)</li>
+                <li><strong>4 tensor cores (5th gen)</strong> per SM</li>
+                <li>16 LD/ST, 16 SFU</li>
+                <li>TMA unit, RAS unit</li>
+                <li>~256 KB L1 + shared (configurable)</li>
+                <li>~256 KB register file</li>
+                <li>Cluster-aware (inherited from Hopper)</li>
+            </ul>
+        </div>
+        <div class="diagram-panel accent-border">
+            <h4>SM count</h4>
+            <ul>
+                <li>~144 SMs per compute die</li>
+                <li>2 dies per package &rarr; ~288 SMs total</li>
+                <li>B200 enables ~256 (binning for yield)</li>
+                <li>B100 enables fewer at lower clocks</li>
+                <li>GPC structure: 8 GPCs &times; 9 TPCs per die</li>
+            </ul>
+        </div>
+    </div>
+</section>
+
+<section class="slide" id="slide-05">
+    <div class="slide-number">05</div>
+    <h2>MX-FP4 &amp; MX-FP6 Microscaling Formats</h2>
+    <p>Hopper FP8 used <strong>per-tensor</strong> scaling &mdash; one scale per matrix. Blackwell pushes to <strong>per-microblock</strong> scaling: every block of <strong>32 elements</strong> shares an 8-bit power-of-two scale, and the elements themselves are 4 or 6 bits.</p>
+
+    <div class="table-wrap">
+        <table>
+            <thead><tr><th>Format</th><th>Element bits</th><th>Block size</th><th>Per-block overhead</th><th>Effective bits/element</th></tr></thead>
+            <tbody>
+                <tr><td>MX-FP8 (E4M3)</td><td>8</td><td>32</td><td>8 bits scale</td><td>8.25</td></tr>
+                <tr><td>MX-FP6 (E3M2)</td><td>6</td><td>32</td><td>8 bits scale</td><td>6.25</td></tr>
+                <tr><td>MX-FP6 (E2M3)</td><td>6</td><td>32</td><td>8 bits scale</td><td>6.25</td></tr>
+                <tr><td><strong>MX-FP4 (E2M1)</strong></td><td><strong>4</strong></td><td>32</td><td>8 bits scale</td><td><strong>4.25</strong></td></tr>
+                <tr><td>MX-INT8</td><td>8</td><td>32</td><td>8 bits scale</td><td>8.25</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <p>Throughput on B200: MX-FP4 is <strong>2&times; FP8 = 9 PFLOPS dense, 18 PFLOPS sparse</strong> per package. MX-FP6 same throughput as FP8 (scales work for free at the tensor core).</p>
+
+    <div class="callout">
+        <div class="callout-label">OCP standard</div>
+        <p>The MX format family is an Open Compute Project standard (<em>OCP MX Specification</em>) co-defined by NVIDIA, AMD, ARM, Intel, Meta, Microsoft, Qualcomm. AMD MI355 and Intel Gaudi 3 also implement subsets &mdash; the format itself isn't NVIDIA-locked.</p>
+    </div>
+</section>
+
+<section class="slide" id="slide-06">
+    <div class="slide-number">06</div>
+    <h2>2nd-Generation Transformer Engine</h2>
+    <p>The 2nd-gen TE handles per-microblock scaling automatically: track recent activation maxima at microblock granularity, choose scale per block on the next forward pass. Open-source library, PyTorch + JAX bindings, drop-in <code>te.Linear</code> replacement for <code>torch.nn.Linear</code>.</p>
+    <p>Key insight: at MX-FP4, accuracy is sensitive to <strong>which block boundary aligns with which channel</strong>. The 2nd-gen TE inserts learnable rotations during fine-tune to reduce outlier sensitivity &mdash; a software trick that requires hardware support for arbitrary block-aligned tensor shapes, which Blackwell provides.</p>
+    <p>Real-world: Llama-3-405B and DeepSeek-V3 ship with MX-FP4 quantised checkpoints for Blackwell deployments. Accuracy loss versus BF16 reference is typically &lt;1% on standard benchmarks.</p>
+</section>
+
+<section class="slide" id="slide-07">
+    <div class="slide-number">07</div>
+    <h2>RAS &amp; Decompression Engines</h2>
+    <div class="diagram-grid cols-2">
+        <div class="diagram-panel accent-border">
+            <h4>RAS Engine</h4>
+            <p>Reliability / Availability / Serviceability hardware unit. Continuously monitors silicon for transient errors using AI-assisted predictive analysis &mdash; identifies failing components before they take a node offline; hot-swaps work to other parts of the GPU; reports diagnostics to DCGM. Critical at NVL72 scale where MTBF compounds across 72 GPUs.</p>
+        </div>
+        <div class="diagram-panel accent-border">
+            <h4>Decompression Engine</h4>
+            <p>Hardware accelerator for <strong>LZ4, Snappy, Deflate (gzip-compatible)</strong>. <strong>800 GB/s</strong> peak. Use cases: data-lake ingestion (Apache Parquet pages decompress inline), vector-search index loading, RAG chunk retrieval at near-bandwidth speeds. Frees CPU and DRAM from the decompression cycle.</p>
+        </div>
+    </div>
+    <p>Also new: <strong>TEE-IO</strong> (Trusted Execution Environment IO) &mdash; the host CPU's TEE (Intel TDX, AMD SEV) and the Blackwell GPU together form a single confidential boundary; encrypted DMA moves data without trusting the hypervisor.</p>
+</section>
+
+<section class="slide" id="slide-08">
+    <div class="slide-number">08</div>
+    <h2>Process &amp; Voltage</h2>
+    <p>B100 / B200 / GB200 compute dies on <strong>TSMC 4NP</strong> &mdash; a refinement of 4N with denser cells and slightly improved performance. Roughly 6% better perf/W than 4N at the same voltage.</p>
+
+    <div class="table-wrap">
+        <table>
+            <thead><tr><th>Component</th><th>Process</th><th>Trans</th><th>Area</th></tr></thead>
+            <tbody>
+                <tr><td>B200 compute die (each, &times;2)</td><td>TSMC 4NP</td><td>~104 B</td><td>~750 mm&sup2;</td></tr>
+                <tr><td>B200 package total</td><td>TSMC 4NP + CoWoS-L</td><td>~208 B</td><td>~1500 mm&sup2; silicon</td></tr>
+                <tr><td>GB202 (RTX 5090, RTX PRO 6000)</td><td>TSMC 4NP monolithic</td><td>92.2 B</td><td>750 mm&sup2;</td></tr>
+                <tr><td>GB203 (RTX 5080)</td><td>TSMC 4NP monolithic</td><td>45.6 B</td><td>378 mm&sup2;</td></tr>
+                <tr><td>GB205 (RTX 5070)</td><td>TSMC 4NP monolithic</td><td>31.1 B</td><td>263 mm&sup2;</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <p>Voltage rails on B200: VDD core (~0.85 V at boost), VDDQ-HBM3e (1.1 V), VDDIO-NVLink (~0.75 V), VDD-NV-HBI (~0.65 V on-package). Liquid cooling required at 1000 W &mdash; air cooling is no longer feasible at this density.</p>
+</section>
+
+<section class="slide" id="slide-09">
+    <div class="slide-number">09</div>
+    <h2>Memory &mdash; HBM3e at 8 TB/s, GDDR7 on Consumer</h2>
+    <div class="diagram-grid cols-2">
+        <div class="diagram-panel accent-border">
+            <h4>Datacenter HBM3e</h4>
+            <ul>
+                <li><strong>8 stacks of HBM3e</strong> (4 per compute die)</li>
+                <li>Each stack: 8-Hi or 12-Hi, 24 GB</li>
+                <li>Total: 192 GB on B200</li>
+                <li>Pin rate ~9.6 Gbps PAM4</li>
+                <li>Per-stack BW ~1 TB/s &rarr; <strong>aggregate 8 TB/s</strong></li>
+                <li>Bus width: 8192 bits total (1024 per stack)</li>
+                <li>ECC SECDED + on-die ECC mandatory</li>
+            </ul>
+        </div>
+        <div class="diagram-panel accent-border">
+            <h4>Consumer GDDR7</h4>
+            <ul>
+                <li>RTX 5090: <strong>32 GB GDDR7 at 28 Gbps PAM3</strong> on 512-bit bus &rarr; 1.79 TB/s</li>
+                <li>RTX PRO 6000: <strong>96 GB GDDR7 ECC</strong> on 512-bit bus &rarr; 1.79 TB/s</li>
+                <li>RTX 5080: 16 GB GDDR7 at 30 Gbps on 256-bit &rarr; 960 GB/s</li>
+                <li>PAM3 signalling: 3 levels per symbol, halfway between NRZ and PAM4 power/eye trade-off</li>
+                <li>~1.7&times; bandwidth-per-pin vs GDDR6X</li>
+            </ul>
+        </div>
+    </div>
+</section>
+
+<section class="slide" id="slide-10">
+    <div class="slide-number">10</div>
+    <h2>NVLink 5 &amp; NVSwitch 4 (NVL72)</h2>
+    <p>NVLink 5 doubles per-link bandwidth versus NVLink 4: <strong>50 GB/s/dir per link</strong>. B200 has 18 links &rarr; <strong>900 GB/s/dir = 1.8 TB/s bidirectional</strong> per GPU. Signalling: 200 Gbps PAM4 per lane, 2 lanes per link.</p>
+
+    <div class="table-wrap">
+        <table>
+            <thead><tr><th>Property</th><th>NVLink 4 (Hopper)</th><th>NVLink 5 (Blackwell)</th></tr></thead>
+            <tbody>
+                <tr><td>Per-lane rate</td><td>100 Gbps PAM4</td><td>200 Gbps PAM4</td></tr>
+                <tr><td>Lanes per link</td><td>2</td><td>2</td></tr>
+                <tr><td>Per-link BW (1-dir)</td><td>25 GB/s</td><td>50 GB/s</td></tr>
+                <tr><td>Links per GPU</td><td>18</td><td>18</td></tr>
+                <tr><td>Aggregate per GPU (1-dir)</td><td>900 GB/s</td><td><strong>1.8 TB/s</strong></td></tr>
+                <tr><td>NVSwitch generation</td><td>NVSwitch 3</td><td>NVSwitch 4 (with NVLink-Sharp)</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <p><strong>NVL72</strong>: 72&times; B200 GPUs (in 36&times; GB200 superchips on 18 compute trays) + 9 NVLink-Switch trays. <strong>130 TB/s aggregate fabric bandwidth, 13.5 TB unified HBM3e</strong>, addressable as one logical GPU. Liquid cooled, ~120 kW per rack.</p>
+
+    <p><strong>NVSwitch 4</strong> adds <strong>NVLink-Sharp</strong>: in-network reductions for collective operations &mdash; the switch fabric itself performs an all-reduce sum, halving bandwidth needed. Critical at 72-GPU scale.</p>
+</section>
+
+<section class="slide" id="slide-11">
+    <div class="slide-number">11</div>
+    <h2>Consumer Blackwell &mdash; RTX 50 Series</h2>
+    <p>The RTX 50-series consumer cards use <strong>monolithic GB202/203/205/206/207 dies</strong> &mdash; no dual-die packaging on consumer. Same 5th-gen tensor cores (FP4 enabled this time, unlike Ada's gating), 4th-gen RT cores, GDDR7 memory.</p>
+
+    <div class="table-wrap">
+        <table>
+            <thead><tr><th>SKU</th><th>Die</th><th>SMs</th><th>Boost</th><th>Memory</th><th>BW</th><th>TDP</th></tr></thead>
+            <tbody>
+                <tr><td>RTX 5090</td><td>GB202</td><td>170</td><td>2.41 GHz</td><td>32 GB GDDR7 28 Gbps</td><td>1792 GB/s</td><td>575 W</td></tr>
+                <tr><td>RTX PRO 6000 Blackwell</td><td>GB202 (full)</td><td>192</td><td>2.5 GHz</td><td>96 GB GDDR7 ECC 28 Gbps</td><td>1792 GB/s</td><td>600 W</td></tr>
+                <tr><td>RTX 5080</td><td>GB203</td><td>84</td><td>2.62 GHz</td><td>16 GB GDDR7 30 Gbps</td><td>960 GB/s</td><td>360 W</td></tr>
+                <tr><td>RTX 5070 Ti</td><td>GB203</td><td>70</td><td>2.45 GHz</td><td>16 GB GDDR7 28 Gbps</td><td>896 GB/s</td><td>300 W</td></tr>
+                <tr><td>RTX 5070</td><td>GB205</td><td>48</td><td>2.51 GHz</td><td>12 GB GDDR7 28 Gbps</td><td>672 GB/s</td><td>250 W</td></tr>
+                <tr><td>RTX 5060 Ti</td><td>GB206</td><td>36</td><td>2.57 GHz</td><td>16 GB GDDR7 28 Gbps</td><td>448 GB/s</td><td>180 W</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <p>Notable: <strong>RTX 5090 retains FP4 hardware</strong> &mdash; consumer Blackwell exposes the new tensor-core formats, unlike Ada where consumer FP8 was fused off. Brings local LLM inference at MX-FP4 to home setups for the first time.</p>
+
+    <p>Connector: <strong>12V-2&times;6 (PCIe 5.x)</strong>, single 600 W cable on RTX 5090 / RTX PRO 6000.</p>
+</section>
+
+<section class="slide" id="slide-12">
+    <div class="slide-number">12</div>
+    <h2>Interactive: Blackwell SKU Picker</h2>
+    <div class="control-panel">
+        <div class="control-row">
+            <label for="b-sku">Blackwell SKU</label>
+            <select id="b-sku">
+                <option value="b100">B100 (HGX H100-compat 700 W)</option>
+                <option value="b200">B200 (HGX B200 1000 W)</option>
+                <option value="gb200">GB200 superchip (Grace + 2&times; B200)</option>
+                <option value="rtxpro">RTX PRO 6000 Blackwell 96 GB</option>
+                <option value="5090">RTX 5090 32 GB</option>
+                <option value="5080">RTX 5080 16 GB</option>
+                <option value="5070ti">RTX 5070 Ti 16 GB</option>
+                <option value="5070">RTX 5070 12 GB</option>
+            </select>
+        </div>
+        <div class="metric-grid">
+            <div class="metric"><div class="metric-label">Die config</div><div class="metric-value" id="b-die">&mdash;</div></div>
+            <div class="metric"><div class="metric-label">FP4 dense</div><div class="metric-value" id="b-fp4">&mdash;</div></div>
+            <div class="metric"><div class="metric-label">FP8 dense</div><div class="metric-value" id="b-fp8">&mdash;</div></div>
+            <div class="metric"><div class="metric-label">BF16 dense</div><div class="metric-value" id="b-bf16">&mdash;</div></div>
+            <div class="metric"><div class="metric-label">Memory</div><div class="metric-value" id="b-vram">&mdash;</div></div>
+            <div class="metric"><div class="metric-label">BW (TB/s)</div><div class="metric-value" id="b-bw">&mdash;</div></div>
+            <div class="metric"><div class="metric-label">TDP</div><div class="metric-value" id="b-tdp">&mdash;</div></div>
+            <div class="metric"><div class="metric-label">NVLink</div><div class="metric-value" id="b-nvl">&mdash;</div></div>
+        </div>
+        <div id="b-out" class="result-box"></div>
+    </div>
+    <script>
+    (function(){
+        const data = {
+            'b100':   { die:'2&times; compute dies', fp4:'7 PF', fp8:'3.5 PF', bf16:'1.75 PF', vram:'192 GB HBM3e', bw:'8',  tdp:'700 W', nvl:'18&times; NVLink 5 = 1.8 TB/s', note:'Drop-in HGX H100 socket compat; lower clocks vs B200.' },
+            'b200':   { die:'2&times; compute dies', fp4:'9 PF', fp8:'4.5 PF', bf16:'2.25 PF', vram:'192 GB HBM3e', bw:'8',  tdp:'1000 W', nvl:'18&times; NVLink 5 = 1.8 TB/s', note:'Full performance; HGX B200 baseboard, liquid cooled.' },
+            'gb200':  { die:'1 Grace + 2&times; B200', fp4:'18 PF', fp8:'9 PF', bf16:'4.5 PF', vram:'384 GB HBM3e + 480 GB LPDDR5x', bw:'16 + 0.48 LPDDR', tdp:'2700 W', nvl:'NVLink 5 + 2&times; C2C 900 GB/s', note:'Building block of NVL72 rack.' },
+            'rtxpro': { die:'1 (GB202 monolithic full)', fp4:'~3.0 PF', fp8:'~1.5 PF', bf16:'~0.75 PF', vram:'96 GB GDDR7 ECC', bw:'1.79', tdp:'600 W', nvl:'no (ConnectX option)', note:'Blackwell workstation flagship; replaces RTX 6000 Ada.' },
+            '5090':   { die:'1 (GB202 cut)', fp4:'~3.0 PF', fp8:'~1.5 PF', bf16:'~0.75 PF', vram:'32 GB GDDR7', bw:'1.79', tdp:'575 W', nvl:'no', note:'Consumer flagship; FP4 enabled.' },
+            '5080':   { die:'1 (GB203)', fp4:'~1.4 PF', fp8:'~0.7 PF', bf16:'~0.35 PF', vram:'16 GB GDDR7', bw:'0.96', tdp:'360 W', nvl:'no', note:'Consumer tier-2; 30 Gbps GDDR7.' },
+            '5070ti': { die:'1 (GB203 cut)', fp4:'~1.2 PF', fp8:'~0.6 PF', bf16:'~0.3 PF', vram:'16 GB GDDR7', bw:'0.90', tdp:'300 W', nvl:'no', note:'Sweet-spot 16 GB consumer.' },
+            '5070':   { die:'1 (GB205)', fp4:'~0.85 PF', fp8:'~0.42 PF', bf16:'~0.21 PF', vram:'12 GB GDDR7', bw:'0.67', tdp:'250 W', nvl:'no', note:'Mid-range; 12 GB tight for modern LLMs.' }
+        };
+        function rec(){
+            const k = document.getElementById('b-sku').value;
+            const d = data[k];
+            document.getElementById('b-die').textContent = d.die;
+            document.getElementById('b-fp4').textContent = d.fp4;
+            document.getElementById('b-fp8').textContent = d.fp8;
+            document.getElementById('b-bf16').textContent = d.bf16;
+            document.getElementById('b-vram').textContent = d.vram;
+            document.getElementById('b-bw').textContent = d.bw;
+            document.getElementById('b-tdp').textContent = d.tdp;
+            document.getElementById('b-nvl').innerHTML = d.nvl;
+            document.getElementById('b-out').innerHTML = '<div><span class="line-label">role</span> &rarr; <span class="line-val">' + d.note + '</span></div>';
+        }
+        document.getElementById('b-sku').addEventListener('change', rec);
+        rec();
+    })();
+    </script>
+</section>
+<!-- ════════════════════════════════════ Footer ════════════════════════════════════ -->
+<footer class="footer">
+    <p>Part of the <a href="https://github.com/BrendanJamesLynskey/LLMs#nvidia-gpu-architectures">NVIDIA GPU Architectures Series</a></p>
+    <p style="margin-top: 0.5rem; font-size: 0.8rem;"><a href="https://github.com/BrendanJamesLynskey/LLMs#nvidia-gpu-architectures">Back to Series Index</a></p>
+</footer>
+
+<script>
+    // Smooth scroll for TOC links
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            e.preventDefault();
+            const target = document.querySelector(this.getAttribute('href'));
+            if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+    });
+
+    // Subtle fade-in on scroll
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.style.opacity = '1';
+                entry.target.style.transform = 'translateY(0)';
+            }
+        });
+    }, { threshold: 0.1 });
+    document.querySelectorAll('.slide').forEach(slide => {
+        slide.style.opacity = '0';
+        slide.style.transform = 'translateY(30px)';
+        slide.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+        observer.observe(slide);
+    });
+</script>
+
+</body>
+</html>
