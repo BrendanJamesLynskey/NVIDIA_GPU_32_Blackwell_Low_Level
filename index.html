@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NVIDIA GPU 32 — Blackwell Low-Level HW</title>
+    <title>NVIDIA GPU 32 — Blackwell Low-Level HW (MX-FP4 / NVFP4)</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
@@ -759,15 +759,15 @@
 
 <header class="hero">
     <div class="series-label">NVIDIA GPU Architectures Series — Presentation 32</div>
-    <h1>Inside <span class="accent">Blackwell</span> &mdash; Dual-Die, MX-FP4, NVLink 5</h1>
-    <p class="subtitle">A low-level deep dive into NVIDIA's 2024 dual-die architecture. Two reticle-sized dies bonded by the 10 TB/s NV-HBI link, 5th-generation tensor cores with MX-FP4 microscaling at 9 PFLOPS, 192 GB of HBM3e at 8 TB/s, NVLink 5 at 1.8 TB/s per GPU, the GB200 superchip and NVL72 rack, plus the consumer RTX 50 series with GDDR7.</p>
+    <h1>Inside <span class="accent">Blackwell</span> &mdash; Dual-Die, MX-FP4 / NVFP4, NVLink 5</h1>
+    <p class="subtitle">A low-level deep dive into NVIDIA's 2024 dual-die architecture. Two reticle-sized dies bonded by the 10 TB/s NV-HBI link, 5th-generation tensor cores with MX-FP4 and NVFP4 microscaling at ~9 PFLOPS dense, 192 GB of HBM3e at 8 TB/s, NVLink 5 at 1.8 TB/s per GPU, the GB200 superchip and NVL72 rack, plus the consumer RTX 50 series with GDDR7.</p>
 
     <div class="tags">
         <span class="tag">B100</span><span class="tag">B200</span><span class="tag">GB200</span>
         <span class="tag">RTX 5090</span><span class="tag">RTX PRO 6000</span>
         <span class="tag">TSMC 4NP</span><span class="tag">NV-HBI</span><span class="tag">CoWoS-L</span>
         <span class="tag">HBM3e</span><span class="tag">GDDR7</span>
-        <span class="tag">MX-FP4</span><span class="tag">NVLink 5</span><span class="tag">RAS</span>
+        <span class="tag">MX-FP4</span><span class="tag">NVFP4</span><span class="tag">NVLink 5</span><span class="tag">RAS</span>
     </div>
 
     <div class="pipeline">
@@ -777,7 +777,7 @@
         <span class="pipeline-arrow">&harr;</span>
         <span class="pipeline-step">Die B</span>
         <span class="pipeline-arrow">&rarr;</span>
-        <span class="pipeline-step">TC5 / MX-FP4</span>
+        <span class="pipeline-step">TC5 / MX-FP4 + NVFP4</span>
         <span class="pipeline-arrow">&rarr;</span>
         <span class="pipeline-step">HBM3e</span>
         <span class="pipeline-arrow">&rarr;</span>
@@ -795,7 +795,7 @@
         <li><a href="#slide-02">The Dual-Die Package &amp; NV-HBI</a></li>
         <li><a href="#slide-03">B200 / B100 / GB200 SKUs</a></li>
         <li><a href="#slide-04">The Blackwell SM &mdash; 5th-Gen Tensor Cores</a></li>
-        <li><a href="#slide-05">MX-FP4 &amp; MX-FP6 Microscaling Formats</a></li>
+        <li><a href="#slide-05">FP4 Microscaling Formats &mdash; MX-FP4 &amp; NVFP4</a></li>
         <li><a href="#slide-06">2nd-Generation Transformer Engine</a></li>
         <li><a href="#slide-07">RAS &amp; Decompression Engines</a></li>
         <li><a href="#slide-08">Process &amp; Voltage</a></li>
@@ -809,14 +809,14 @@
 <section class="slide" id="slide-01">
     <div class="slide-number">01</div>
     <h2>Blackwell at a Glance</h2>
-    <p>Announced at GTC <strong>March 2024</strong>, volume in late 2024. Blackwell is NVIDIA's <strong>first multi-die GPU at the high end</strong>: two reticle-limited compute dies bonded into one logical GPU. Names get confusing &mdash; "Blackwell" is the architecture, "B100/B200" are dual-die datacenter GPUs, "GB100/GB202/GB203/..." are consumer/workstation dies.</p>
+    <p>Announced at GTC <strong>March 2024</strong>, volume in late 2024. Blackwell is NVIDIA's <strong>first multi-die GPU at the high end</strong>: two reticle-limited compute dies bonded into one logical GPU. Names get confusing &mdash; "Blackwell" is the architecture, "B100/B200/B300" are dual-die datacenter GPUs (each carrying two <strong>GB100</strong> compute dies, sm_100), and "GB202/GB203/GB205/GB206/GB207" are <em>single-die</em> consumer/workstation dies (sm_120) used in the RTX 50 series.</p>
     <div class="table-wrap">
         <table>
-            <thead><tr><th>SKU</th><th>Dies</th><th>HBM / GDDR</th><th>Bandwidth</th><th>FP4 (dense)</th><th>TDP</th></tr></thead>
+            <thead><tr><th>SKU</th><th>Dies</th><th>HBM / GDDR</th><th>Bandwidth</th><th>FP4 dense (MX-FP4 / NVFP4)</th><th>TDP</th></tr></thead>
             <tbody>
                 <tr><td>B100</td><td>2&times; compute</td><td>192 GB HBM3e</td><td>8 TB/s</td><td>~7 PFLOPS</td><td>700 W</td></tr>
                 <tr><td>B200</td><td>2&times; compute</td><td>192 GB HBM3e</td><td>8 TB/s</td><td>9 PFLOPS</td><td>1000 W</td></tr>
-                <tr><td>GB200 (1 Grace + 2 B200)</td><td>4 silicon dies</td><td>384 GB HBM3e + 480 GB LPDDR5x</td><td>16 TB/s + 480 GB/s</td><td>18 PFLOPS</td><td>2700 W</td></tr>
+                <tr><td>GB200 (1 Grace + 2 B200)</td><td>1 Grace + 4 compute dies</td><td>384 GB HBM3e + 480 GB LPDDR5x</td><td>16 TB/s + 480 GB/s</td><td>~18 PFLOPS</td><td>2700 W</td></tr>
                 <tr><td>RTX PRO 6000 Blackwell</td><td>1 (GB202 monolithic)</td><td>96 GB GDDR7 ECC</td><td>1.79 TB/s</td><td>~3 PFLOPS</td><td>600 W</td></tr>
                 <tr><td>RTX 5090</td><td>1 (GB202)</td><td>32 GB GDDR7</td><td>1.79 TB/s</td><td>~3 PFLOPS</td><td>575 W</td></tr>
             </tbody>
@@ -827,12 +827,12 @@
 <section class="slide" id="slide-02">
     <div class="slide-number">02</div>
     <h2>The Dual-Die Package &amp; NV-HBI</h2>
-    <p>Each B100/B200 contains <strong>two compute dies</strong>, each ~750 mm&sup2; on TSMC 4NP, ~104 B transistors each &mdash; <strong>~208 B transistors total</strong>. The dies are bonded face-to-face via <strong>NV-HBI</strong> (NVIDIA High-Bandwidth Interface): a wide silicon-bridge link delivering <strong>10 TB/s bidirectional die-to-die</strong>.</p>
+    <p>Each B100/B200 contains <strong>two GB100 compute dies</strong>, each ~800 mm&sup2; on TSMC 4NP, ~104 B transistors each &mdash; <strong>~208 B transistors total</strong>. The dies are bonded via <strong>NV-HBI</strong> (NVIDIA High-Bandwidth Interface): a wide silicon-bridge link delivering <strong>10 TB/s die-to-die</strong>, transparent to software (the OS sees one GPU).</p>
 
     <div class="diagram-grid cols-2">
         <div class="diagram-panel accent-border">
             <h4>Why dual die</h4>
-            <p>TSMC's reticle limit is ~830 mm&sup2;. GH100 was already at 814 mm&sup2;. To deliver more compute per package, NVIDIA had to either accept the ceiling or split the design. Two ~750 mm&sup2; dies + NV-HBI gives 1.8&times; the silicon area at substantially better yield than one impossible 1500 mm&sup2; die.</p>
+            <p>TSMC's reticle limit is ~858 mm&sup2;. GH100 was already at 814 mm&sup2;. To deliver more compute per package, NVIDIA had to either accept the ceiling or split the design. Two ~800 mm&sup2; dies + NV-HBI gives ~1.9&times; the silicon area at substantially better yield than one impossible 1600 mm&sup2; die.</p>
         </div>
         <div class="diagram-panel accent-border">
             <h4>Why &quot;one GPU&quot;</h4>
@@ -845,15 +845,15 @@
 
 <section class="slide" id="slide-03">
     <div class="slide-number">03</div>
-    <h2>B200 / B100 / GB200 SKUs</h2>
+    <h2>B100 / B200 / B300 / GB200 SKUs</h2>
     <div class="diagram-grid cols-3">
         <div class="diagram-panel accent-border">
             <h4>B100 (700 W)</h4>
-            <p>Drop-in HGX H100 socket compatibility. Two compute dies; <strong>192 GB HBM3e at 8 TB/s</strong>. Lower clocks than B200 to fit 700 W envelope. Allows existing HGX H100 buyers to upgrade in place.</p>
+            <p>Drop-in HGX H100 socket compatibility. Two compute dies; <strong>192 GB HBM3e at 8 TB/s</strong>. Lower clocks than B200 to fit 700 W envelope. Allows existing HGX H100 buyers to upgrade in place. <strong>B300 / Blackwell Ultra</strong> ramps in 2025 with <strong>288 GB HBM3e</strong> (12-high stacks) for larger models.</p>
         </div>
         <div class="diagram-panel accent-border">
-            <h4>B200 (1000 W)</h4>
-            <p>Full performance variant; same silicon, higher clocks, requires liquid-cooled HGX B200 baseboard. <strong>9 PFLOPS dense MX-FP4, 4.5 PFLOPS FP8, 2.25 PFLOPS BF16, 40 TFLOPS FP64</strong>.</p>
+            <h4>B200 (1000 W SXM6)</h4>
+            <p>Full performance variant; same silicon, higher clocks, requires liquid-cooled HGX B200 baseboard. <strong>~9 PFLOPS dense FP4 (MX-FP4 / NVFP4), 4.5 PFLOPS FP8, 2.25 PFLOPS BF16, 40 TFLOPS FP64</strong>. 192 GB HBM3e (8 stacks &times; 24 GB).</p>
         </div>
         <div class="diagram-panel accent-border">
             <h4>GB200 superchip (2700 W)</h4>
@@ -894,27 +894,38 @@
 
 <section class="slide" id="slide-05">
     <div class="slide-number">05</div>
-    <h2>MX-FP4 &amp; MX-FP6 Microscaling Formats</h2>
-    <p>Hopper FP8 used <strong>per-tensor</strong> scaling &mdash; one scale per matrix. Blackwell pushes to <strong>per-microblock</strong> scaling: every block of <strong>32 elements</strong> shares an 8-bit power-of-two scale, and the elements themselves are 4 or 6 bits.</p>
+    <h2>FP4 Microscaling Formats &mdash; MX-FP4 &amp; NVFP4</h2>
+    <p>Hopper FP8 used <strong>per-tensor</strong> scaling &mdash; one scale per matrix. Blackwell's 5th-gen tensor cores push to <strong>per-microblock</strong> scaling, accelerating <strong>two FP4 variants</strong>: the open <strong>MX-FP4</strong> standard and NVIDIA's higher-accuracy <strong>NVFP4</strong>.</p>
 
     <div class="table-wrap">
         <table>
-            <thead><tr><th>Format</th><th>Element bits</th><th>Block size</th><th>Per-block overhead</th><th>Effective bits/element</th></tr></thead>
+            <thead><tr><th>Format</th><th>Element bits</th><th>Block size</th><th>Per-block scale</th><th>Effective bits/element</th></tr></thead>
             <tbody>
-                <tr><td>MX-FP8 (E4M3)</td><td>8</td><td>32</td><td>8 bits scale</td><td>8.25</td></tr>
-                <tr><td>MX-FP6 (E3M2)</td><td>6</td><td>32</td><td>8 bits scale</td><td>6.25</td></tr>
-                <tr><td>MX-FP6 (E2M3)</td><td>6</td><td>32</td><td>8 bits scale</td><td>6.25</td></tr>
-                <tr><td><strong>MX-FP4 (E2M1)</strong></td><td><strong>4</strong></td><td>32</td><td>8 bits scale</td><td><strong>4.25</strong></td></tr>
-                <tr><td>MX-INT8</td><td>8</td><td>32</td><td>8 bits scale</td><td>8.25</td></tr>
+                <tr><td>MX-FP8 (E4M3)</td><td>8</td><td>32</td><td>E8M0 (8-bit)</td><td>8.25</td></tr>
+                <tr><td>MX-FP6 (E3M2)</td><td>6</td><td>32</td><td>E8M0 (8-bit)</td><td>6.25</td></tr>
+                <tr><td>MX-FP6 (E2M3)</td><td>6</td><td>32</td><td>E8M0 (8-bit)</td><td>6.25</td></tr>
+                <tr><td><strong>MX-FP4 (E2M1)</strong></td><td><strong>4</strong></td><td>32</td><td>E8M0 (8-bit, exponent-only)</td><td><strong>4.25</strong></td></tr>
+                <tr><td><strong>NVFP4 (E2M1)</strong></td><td><strong>4</strong></td><td><strong>16</strong></td><td>E4M3 (FP8) + per-tensor FP32</td><td><strong>~4.5</strong></td></tr>
+                <tr><td>MX-INT8</td><td>8</td><td>32</td><td>E8M0 (8-bit)</td><td>8.25</td></tr>
             </tbody>
         </table>
     </div>
 
-    <p>Throughput on B200: MX-FP4 is <strong>2&times; FP8 = 9 PFLOPS dense, 18 PFLOPS sparse</strong> per package. MX-FP6 same throughput as FP8 (scales work for free at the tensor core).</p>
+    <p>Throughput on B200: dense FP4 (either format) is <strong>2&times; FP8 &asymp; 9 PFLOPS dense, ~18 PFLOPS sparse</strong> per package. MX-FP6 same throughput as FP8 (scales work for free at the tensor core).</p>
+
+    <div class="callout">
+        <div class="callout-label">MX-FP4 vs NVFP4</div>
+        <p><strong>MX-FP4</strong> is the open OCP standard: 32-element blocks, an 8-bit exponent-only (E8M0, power-of-two) scale per block. <strong>NVFP4</strong> is NVIDIA's variant: smaller <strong>16-element blocks</strong> with an <strong>E4M3 FP8</strong> per-block scale plus a per-tensor FP32 scale. The finer block size and richer scale type make NVFP4 noticeably more accurate than MX-FP4 in practice, and it is the <strong>default in TensorRT-LLM and Transformer Engine</strong> for Blackwell deployments. Tensor cores accelerate both at the same headline rate.</p>
+    </div>
 
     <div class="callout">
         <div class="callout-label">OCP standard</div>
-        <p>The MX format family is an Open Compute Project standard (<em>OCP MX Specification</em>) co-defined by NVIDIA, AMD, ARM, Intel, Meta, Microsoft, Qualcomm. AMD MI355 and Intel Gaudi 3 also implement subsets &mdash; the format itself isn't NVIDIA-locked.</p>
+        <p>The MX format family is an Open Compute Project standard (<em>OCP MX Specification</em>) co-defined by NVIDIA, AMD, ARM, Intel, Meta, Microsoft, Qualcomm. AMD MI355 and Intel Gaudi 3 also implement subsets &mdash; MX-FP4 itself isn't NVIDIA-locked. NVFP4 is NVIDIA-specific.</p>
+    </div>
+
+    <div class="callout">
+        <div class="callout-label">PTX</div>
+        <p>Blackwell exposes a new SM-level tensor-core PTX op family <code>tcgen05.mma</code> for these formats &mdash; including FP4 paths &mdash; replacing/augmenting Hopper's <code>wgmma</code>.</p>
     </div>
 </section>
 
@@ -922,8 +933,8 @@
     <div class="slide-number">06</div>
     <h2>2nd-Generation Transformer Engine</h2>
     <p>The 2nd-gen TE handles per-microblock scaling automatically: track recent activation maxima at microblock granularity, choose scale per block on the next forward pass. Open-source library, PyTorch + JAX bindings, drop-in <code>te.Linear</code> replacement for <code>torch.nn.Linear</code>.</p>
-    <p>Key insight: at MX-FP4, accuracy is sensitive to <strong>which block boundary aligns with which channel</strong>. The 2nd-gen TE inserts learnable rotations during fine-tune to reduce outlier sensitivity &mdash; a software trick that requires hardware support for arbitrary block-aligned tensor shapes, which Blackwell provides.</p>
-    <p>Real-world: Llama-3-405B and DeepSeek-V3 ship with MX-FP4 quantised checkpoints for Blackwell deployments. Accuracy loss versus BF16 reference is typically &lt;1% on standard benchmarks.</p>
+    <p>Key insight: at FP4, accuracy is sensitive to <strong>which block boundary aligns with which channel</strong>. The 2nd-gen TE inserts learnable rotations during fine-tune to reduce outlier sensitivity &mdash; a software trick that requires hardware support for arbitrary block-aligned tensor shapes, which Blackwell provides. TE supports both <strong>MX-FP4</strong> (32-element E8M0 blocks) and <strong>NVFP4</strong> (16-element E4M3 blocks + per-tensor FP32); <strong>NVFP4 is the default</strong> for Blackwell inference paths.</p>
+    <p>Real-world: Llama-3-405B and DeepSeek-V3 ship with FP4 quantised checkpoints (MX-FP4 and NVFP4) for Blackwell deployments. Accuracy loss versus BF16 reference is typically &lt;1% on standard benchmarks, with NVFP4 generally closer to BF16 than MX-FP4.</p>
 </section>
 
 <section class="slide" id="slide-07">
@@ -951,8 +962,8 @@
         <table>
             <thead><tr><th>Component</th><th>Process</th><th>Trans</th><th>Area</th></tr></thead>
             <tbody>
-                <tr><td>B200 compute die (each, &times;2)</td><td>TSMC 4NP</td><td>~104 B</td><td>~750 mm&sup2;</td></tr>
-                <tr><td>B200 package total</td><td>TSMC 4NP + CoWoS-L</td><td>~208 B</td><td>~1500 mm&sup2; silicon</td></tr>
+                <tr><td>GB100 compute die (each, &times;2)</td><td>TSMC 4NP</td><td>~104 B</td><td>~800 mm&sup2;</td></tr>
+                <tr><td>B200 package total</td><td>TSMC 4NP + CoWoS-L</td><td>~208 B</td><td>~1600 mm&sup2; silicon</td></tr>
                 <tr><td>GB202 (RTX 5090, RTX PRO 6000)</td><td>TSMC 4NP monolithic</td><td>92.2 B</td><td>750 mm&sup2;</td></tr>
                 <tr><td>GB203 (RTX 5080)</td><td>TSMC 4NP monolithic</td><td>45.6 B</td><td>378 mm&sup2;</td></tr>
                 <tr><td>GB205 (RTX 5070)</td><td>TSMC 4NP monolithic</td><td>31.1 B</td><td>263 mm&sup2;</td></tr>
@@ -1011,7 +1022,7 @@
         </table>
     </div>
 
-    <p><strong>NVL72</strong>: 72&times; B200 GPUs (in 36&times; GB200 superchips on 18 compute trays) + 9 NVLink-Switch trays. <strong>130 TB/s aggregate fabric bandwidth, 13.5 TB unified HBM3e</strong>, addressable as one logical GPU. Liquid cooled, ~120 kW per rack.</p>
+    <p><strong>NVL72</strong>: 72&times; B200 GPUs (in 36&times; GB200 superchips, 36 Grace + 72 B200, on 18 compute trays) + 9 NVLink-Switch trays (NVSwitch 4). <strong>~130 TB/s aggregate intra-rack NVLink bandwidth, ~13.8 TB unified HBM3e (72 &times; 192 GB)</strong>, addressable as one logical GPU. Liquid cooled, ~120 kW per rack.</p>
 
     <p><strong>NVSwitch 4</strong> adds <strong>NVLink-Sharp</strong>: in-network reductions for collective operations &mdash; the switch fabric itself performs an all-reduce sum, halving bandwidth needed. Critical at 72-GPU scale.</p>
 </section>
@@ -1019,7 +1030,7 @@
 <section class="slide" id="slide-11">
     <div class="slide-number">11</div>
     <h2>Consumer Blackwell &mdash; RTX 50 Series</h2>
-    <p>The RTX 50-series consumer cards use <strong>monolithic GB202/203/205/206/207 dies</strong> &mdash; no dual-die packaging on consumer. Same 5th-gen tensor cores (FP4 enabled this time, unlike Ada's gating), 4th-gen RT cores, GDDR7 memory.</p>
+    <p>The RTX 50-series consumer cards use <strong>monolithic GB202/GB203/GB205/GB206/GB207 dies</strong> &mdash; no dual-die packaging on consumer. Same 5th-gen tensor cores (FP4 enabled this time, unlike Ada's gating), 4th-gen RT cores, GDDR7 memory. <strong>Compute capability is sm_120</strong> (datacenter B100/B200/B300 are sm_100), so consumer-class kernels are a separate compile target.</p>
 
     <div class="table-wrap">
         <table>
@@ -1035,7 +1046,7 @@
         </table>
     </div>
 
-    <p>Notable: <strong>RTX 5090 retains FP4 hardware</strong> &mdash; consumer Blackwell exposes the new tensor-core formats, unlike Ada where consumer FP8 was fused off. Brings local LLM inference at MX-FP4 to home setups for the first time.</p>
+    <p>Notable: <strong>RTX 5090 retains FP4 hardware</strong> &mdash; consumer Blackwell exposes the new tensor-core formats (MX-FP4 and NVFP4), unlike Ada where consumer FP8 was fused off. Brings local LLM inference at FP4 to home setups for the first time.</p>
 
     <p>Connector: <strong>12V-2&times;6 (PCIe 5.x)</strong>, single 600 W cable on RTX 5090 / RTX PRO 6000.</p>
 </section>
