@@ -817,8 +817,8 @@
                 <tr><td>B100</td><td>2&times; compute</td><td>192 GB HBM3e</td><td>8 TB/s</td><td>~7 PFLOPS</td><td>700 W</td></tr>
                 <tr><td>B200</td><td>2&times; compute</td><td>192 GB HBM3e</td><td>8 TB/s</td><td>9 PFLOPS</td><td>1000 W</td></tr>
                 <tr><td>GB200 (1 Grace + 2 B200)</td><td>1 Grace + 4 compute dies</td><td>384 GB HBM3e + 480 GB LPDDR5x</td><td>16 TB/s + 480 GB/s</td><td>~18 PFLOPS</td><td>2700 W</td></tr>
-                <tr><td>RTX PRO 6000 Blackwell</td><td>1 (GB202 monolithic)</td><td>96 GB GDDR7 ECC</td><td>1.79 TB/s</td><td>~3 PFLOPS</td><td>600 W</td></tr>
-                <tr><td>RTX 5090</td><td>1 (GB202)</td><td>32 GB GDDR7</td><td>1.79 TB/s</td><td>~3 PFLOPS</td><td>575 W</td></tr>
+                <tr><td>RTX PRO 6000 Blackwell</td><td>1 (GB202 monolithic)</td><td>96 GB GDDR7 ECC</td><td>1.79 TB/s</td><td>~2 PFLOPS</td><td>600 W</td></tr>
+                <tr><td>RTX 5090</td><td>1 (GB202)</td><td>32 GB GDDR7</td><td>1.79 TB/s</td><td>~1.7 PFLOPS</td><td>575 W</td></tr>
             </tbody>
         </table>
     </div>
@@ -882,11 +882,11 @@
         <div class="diagram-panel accent-border">
             <h4>SM count</h4>
             <ul>
-                <li>~144 SMs per compute die</li>
-                <li>2 dies per package &rarr; ~288 SMs total</li>
-                <li>B200 enables ~256 (binning for yield)</li>
+                <li>80 SMs per compute die</li>
+                <li>2 dies per package &rarr; 160 SMs total</li>
+                <li>B200 enables 148 (binning for yield)</li>
                 <li>B100 enables fewer at lower clocks</li>
-                <li>GPC structure: 8 GPCs &times; 9 TPCs per die</li>
+                <li>GPC structure: 8 GPCs &times; 10 TPCs per package (4 per die)</li>
             </ul>
         </div>
     </div>
@@ -984,7 +984,7 @@
                 <li><strong>8 stacks of HBM3e</strong> (4 per compute die)</li>
                 <li>Each stack: 8-Hi or 12-Hi, 24 GB</li>
                 <li>Total: 192 GB on B200</li>
-                <li>Pin rate ~9.6 Gbps PAM4</li>
+                <li>Pin rate ~7.8 Gbps (NRZ)</li>
                 <li>Per-stack BW ~1 TB/s &rarr; <strong>aggregate 8 TB/s</strong></li>
                 <li>Bus width: 8192 bits total (1024 per stack)</li>
                 <li>ECC SECDED + on-die ECC mandatory</li>
@@ -1016,28 +1016,28 @@
                 <tr><td>Lanes per link</td><td>2</td><td>2</td></tr>
                 <tr><td>Per-link BW (1-dir)</td><td>25 GB/s</td><td>50 GB/s</td></tr>
                 <tr><td>Links per GPU</td><td>18</td><td>18</td></tr>
-                <tr><td>Aggregate per GPU (1-dir)</td><td>900 GB/s</td><td><strong>1.8 TB/s</strong></td></tr>
+                <tr><td>Aggregate per GPU (bidirectional)</td><td>900 GB/s</td><td><strong>1.8 TB/s</strong></td></tr>
                 <tr><td>NVSwitch generation</td><td>NVSwitch 3</td><td>NVSwitch 4 (with NVLink-Sharp)</td></tr>
             </tbody>
         </table>
     </div>
 
-    <p><strong>NVL72</strong>: 72&times; B200 GPUs (in 36&times; GB200 superchips, 36 Grace + 72 B200, on 18 compute trays) + 9 NVLink-Switch trays (NVSwitch 4). <strong>~130 TB/s aggregate intra-rack NVLink bandwidth, ~13.8 TB unified HBM3e (72 &times; 192 GB)</strong>, addressable as one logical GPU. Liquid cooled, ~120 kW per rack.</p>
+    <p><strong>NVL72</strong>: 72&times; B200 GPUs (in 36&times; GB200 superchips, 36 Grace + 72 B200, on 18 compute trays) + 9 NVLink-Switch trays (NVSwitch 4). <strong>~130 TB/s aggregate intra-rack NVLink bandwidth, ~13.4 TB unified HBM3e (72 &times; 186 GB)</strong>, addressable as one logical GPU. Liquid cooled, ~120 kW per rack.</p>
 
-    <p><strong>NVSwitch 4</strong> adds <strong>NVLink-Sharp</strong>: in-network reductions for collective operations &mdash; the switch fabric itself performs an all-reduce sum, halving bandwidth needed. Critical at 72-GPU scale.</p>
+    <p><strong>NVSwitch 4</strong> carries forward <strong>NVLink-Sharp</strong> (introduced with NVSwitch 3 on Hopper): in-network reductions for collective operations &mdash; the switch fabric itself performs an all-reduce sum, halving bandwidth needed. Critical at 72-GPU scale.</p>
 </section>
 
 <section class="slide" id="slide-11">
     <div class="slide-number">11</div>
     <h2>Consumer Blackwell &mdash; RTX 50 Series</h2>
-    <p>The RTX 50-series consumer cards use <strong>monolithic GB202/GB203/GB205/GB206/GB207 dies</strong> &mdash; no dual-die packaging on consumer. Same 5th-gen tensor cores (FP4 enabled this time, unlike Ada's gating), 4th-gen RT cores, GDDR7 memory. <strong>Compute capability is sm_120</strong> (datacenter B100/B200/B300 are sm_100), so consumer-class kernels are a separate compile target.</p>
+    <p>The RTX 50-series consumer cards use <strong>monolithic GB202/GB203/GB205/GB206/GB207 dies</strong> &mdash; no dual-die packaging on consumer. Same 5th-gen tensor cores (FP4 now added to the consumer tensor cores), 4th-gen RT cores, GDDR7 memory. <strong>Compute capability is sm_120</strong> (datacenter B100/B200/B300 are sm_100), so consumer-class kernels are a separate compile target.</p>
 
     <div class="table-wrap">
         <table>
             <thead><tr><th>SKU</th><th>Die</th><th>SMs</th><th>Boost</th><th>Memory</th><th>BW</th><th>TDP</th></tr></thead>
             <tbody>
                 <tr><td>RTX 5090</td><td>GB202</td><td>170</td><td>2.41 GHz</td><td>32 GB GDDR7 28 Gbps</td><td>1792 GB/s</td><td>575 W</td></tr>
-                <tr><td>RTX PRO 6000 Blackwell</td><td>GB202 (full)</td><td>192</td><td>2.5 GHz</td><td>96 GB GDDR7 ECC 28 Gbps</td><td>1792 GB/s</td><td>600 W</td></tr>
+                <tr><td>RTX PRO 6000 Blackwell</td><td>GB202 (188 of 192 SMs)</td><td>188</td><td>2.5 GHz</td><td>96 GB GDDR7 ECC 28 Gbps</td><td>1792 GB/s</td><td>600 W</td></tr>
                 <tr><td>RTX 5080</td><td>GB203</td><td>84</td><td>2.62 GHz</td><td>16 GB GDDR7 30 Gbps</td><td>960 GB/s</td><td>360 W</td></tr>
                 <tr><td>RTX 5070 Ti</td><td>GB203</td><td>70</td><td>2.45 GHz</td><td>16 GB GDDR7 28 Gbps</td><td>896 GB/s</td><td>300 W</td></tr>
                 <tr><td>RTX 5070</td><td>GB205</td><td>48</td><td>2.51 GHz</td><td>12 GB GDDR7 28 Gbps</td><td>672 GB/s</td><td>250 W</td></tr>
@@ -1046,7 +1046,7 @@
         </table>
     </div>
 
-    <p>Notable: <strong>RTX 5090 retains FP4 hardware</strong> &mdash; consumer Blackwell exposes the new tensor-core formats (MX-FP4 and NVFP4), unlike Ada where consumer FP8 was fused off. Brings local LLM inference at FP4 to home setups for the first time.</p>
+    <p>Notable: <strong>RTX 5090 retains FP4 hardware</strong> &mdash; consumer Blackwell exposes the new tensor-core formats (MX-FP4 and NVFP4), adding FP4 to the FP8 that consumer Ada already had. Brings local LLM inference at FP4 to home setups for the first time.</p>
 
     <p>Connector: <strong>12V-2&times;6 (PCIe 5.x)</strong>, single 600 W cable on RTX 5090 / RTX PRO 6000.</p>
 </section>
@@ -1086,11 +1086,11 @@
             'b100':   { die:'2&times; compute dies', fp4:'7 PF', fp8:'3.5 PF', bf16:'1.75 PF', vram:'192 GB HBM3e', bw:'8',  tdp:'700 W', nvl:'18&times; NVLink 5 = 1.8 TB/s', note:'Drop-in HGX H100 socket compat; lower clocks vs B200.' },
             'b200':   { die:'2&times; compute dies', fp4:'9 PF', fp8:'4.5 PF', bf16:'2.25 PF', vram:'192 GB HBM3e', bw:'8',  tdp:'1000 W', nvl:'18&times; NVLink 5 = 1.8 TB/s', note:'Full performance; HGX B200 baseboard, liquid cooled.' },
             'gb200':  { die:'1 Grace + 2&times; B200', fp4:'18 PF', fp8:'9 PF', bf16:'4.5 PF', vram:'384 GB HBM3e + 480 GB LPDDR5x', bw:'16 + 0.48 LPDDR', tdp:'2700 W', nvl:'NVLink 5 + 2&times; C2C 900 GB/s', note:'Building block of NVL72 rack.' },
-            'rtxpro': { die:'1 (GB202 monolithic full)', fp4:'~3.0 PF', fp8:'~1.5 PF', bf16:'~0.75 PF', vram:'96 GB GDDR7 ECC', bw:'1.79', tdp:'600 W', nvl:'no (ConnectX option)', note:'Blackwell workstation flagship; replaces RTX 6000 Ada.' },
-            '5090':   { die:'1 (GB202 cut)', fp4:'~3.0 PF', fp8:'~1.5 PF', bf16:'~0.75 PF', vram:'32 GB GDDR7', bw:'1.79', tdp:'575 W', nvl:'no', note:'Consumer flagship; FP4 enabled.' },
-            '5080':   { die:'1 (GB203)', fp4:'~1.4 PF', fp8:'~0.7 PF', bf16:'~0.35 PF', vram:'16 GB GDDR7', bw:'0.96', tdp:'360 W', nvl:'no', note:'Consumer tier-2; 30 Gbps GDDR7.' },
-            '5070ti': { die:'1 (GB203 cut)', fp4:'~1.2 PF', fp8:'~0.6 PF', bf16:'~0.3 PF', vram:'16 GB GDDR7', bw:'0.90', tdp:'300 W', nvl:'no', note:'Sweet-spot 16 GB consumer.' },
-            '5070':   { die:'1 (GB205)', fp4:'~0.85 PF', fp8:'~0.42 PF', bf16:'~0.21 PF', vram:'12 GB GDDR7', bw:'0.67', tdp:'250 W', nvl:'no', note:'Mid-range; 12 GB tight for modern LLMs.' }
+            'rtxpro': { die:'1 (GB202 monolithic, 188 SMs)', fp4:'~2.0 PF', fp8:'~1.0 PF', bf16:'~0.5 PF', vram:'96 GB GDDR7 ECC', bw:'1.79', tdp:'600 W', nvl:'no (ConnectX option)', note:'Blackwell workstation flagship; replaces RTX 6000 Ada.' },
+            '5090':   { die:'1 (GB202 cut)', fp4:'~1.68 PF', fp8:'~0.42–0.84 PF', bf16:'~0.21 PF', vram:'32 GB GDDR7', bw:'1.79', tdp:'575 W', nvl:'no', note:'Consumer flagship; FP4 enabled.' },
+            '5080':   { die:'1 (GB203)', fp4:'~0.90 PF', fp8:'~0.23–0.45 PF', bf16:'~0.11 PF', vram:'16 GB GDDR7', bw:'0.96', tdp:'360 W', nvl:'no', note:'Consumer tier-2; 30 Gbps GDDR7.' },
+            '5070ti': { die:'1 (GB203 cut)', fp4:'~0.70 PF', fp8:'~0.18–0.35 PF', bf16:'~0.09 PF', vram:'16 GB GDDR7', bw:'0.90', tdp:'300 W', nvl:'no', note:'Sweet-spot 16 GB consumer.' },
+            '5070':   { die:'1 (GB205)', fp4:'~0.49 PF', fp8:'~0.12–0.25 PF', bf16:'~0.06 PF', vram:'12 GB GDDR7', bw:'0.67', tdp:'250 W', nvl:'no', note:'Mid-range; 12 GB tight for modern LLMs.' }
         };
         function rec(){
             const k = document.getElementById('b-sku').value;
